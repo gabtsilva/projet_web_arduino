@@ -6,19 +6,75 @@
     <title>EPS8266 - Control panel</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <div class="container-lg py-4 p-3">
       <div class="row">
         <div id="192.168.23.217" class="col-md-6">
           <button class="m-auto d-block btn px-3 py-2 fw-bold text-white" onClick="connectToESP('192.168.23.217')">Connect to ESP-1</button>
+          <div class="p-3 pt-5" style="width: 100%;"><canvas id="esp-1"></canvas></div>
+          <div id="hum-tmp" class="row">
+            <div class="col-md-6">
+              <p class="fw-bold text-center pt-3" style="color:rgb(85, 112, 184);">Taux d'humidité</p>
+              <p class="text-center fw-bold" id="hum"></p>
+            </div>
+            <div class="col-md-6">
+              <p class="fw-bold text-center pt-3" style="color:rgb(85, 112, 184);">Température (°C)</p>
+              <p class="text-center fw-bold" id="tmp"></p>
+            </div>
+          </div>
         </div>
         <div id="192.168.23.100" class="col-md-6">
           <button class="m-auto d-block btn px-3 py-2 fw-bold text-white" onClick="connectToESP('192.168.23.100')">Connect to ESP-2</button>
+          <div class="p-3 pt-5" style="width: 100%;"><canvas id="esp-2"></canvas></div>
+          <div id="hum-tmp" class="row">
+            <div class="col-md-6">
+              <p class="fw-bold text-center pt-3" style="color:rgb(85, 112, 184);">Taux d'humidité</p>
+              <p class="text-center fw-bold" id="hum"></p>
+            </div>
+            <div class="col-md-6">
+              <p class="fw-bold text-center pt-3" style="color:rgb(85, 112, 184);">Température (°C)</p>
+              <p class="text-center fw-bold" id="tmp"></p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
     <script src="script.js"></script>
+    <script>
+      var data = {
+        labels: ['January', 'February', 'March', 'April', 'May'],
+        datasets: [{
+          label: 'Température',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          borderColor: 'rgba(255, 99, 132, 1)',
+          borderWidth: 1,
+          data: [65, 59, 80, 81, 56]
+        },
+        {
+          label: 'Humidité',
+          backgroundColor: 'rgba(130, 99, 10, 0.2)',
+          borderColor: 'rgba(120, 10, 242, 1)',
+          borderWidth: 1,
+          data: [30, 45, 17, 50, 34]
+        }]
+      };
+      new Chart(document.getElementById("esp-1").getContext('2d'), {
+        type: 'line',
+        data: data,
+        options: {
+          events: ['click']
+        }
+      });
+      new Chart(document.getElementById("esp-2").getContext('2d'), {
+        type: 'line',
+        data: data,
+        options: {
+          events: ['click']
+        }
+      });
+    </script>
   </body>
 </html>

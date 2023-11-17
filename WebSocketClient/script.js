@@ -65,31 +65,31 @@ function hexToRgb(hex) {
 
 function createModule(url){
   let elements = [];
-  var containerDiv = document.getElementById(url);
-  var state = document.createElement("p");
+  let containerDiv = document.getElementById(url);
+  let containerHumTmp = containerDiv.querySelector("#hum-tmp");
+  
+  let state = document.createElement("p");
   state.id = "state";
   state.innerHTML = "Disconnected";
   
-  var hum = document.createElement("p");
-  hum.id = "hum";
+  let hum = containerHumTmp.querySelector("#hum");
   hum.innerHTML = "Awaiting for data"
 
-  var tmp = document.createElement("p");
-  tmp.id = "tmp";
+  let tmp = containerHumTmp.querySelector("#tmp");
   tmp.innerHTML = "Awaiting for data";
 
-  var color = document.createElement("input");
+  let color = document.createElement("input");
   color.id = "color";
   color.setAttribute("type","color");
 
   color.addEventListener("input", function () {
-    var selectedColor = color.value;
+    let selectedColor = color.value;
     updateRGBInfo(selectedColor, ESPList.get(url));
   });
 
   elements.push(state);
-  elements.push(hum);
-  elements.push(tmp);
+  // elements.push(hum);
+  // elements.push(tmp);
   elements.push(color);
   elements.forEach((element) => {
     containerDiv.append(element);
