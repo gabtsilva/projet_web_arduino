@@ -1,24 +1,33 @@
-var colorPicker = document.getElementById("colorPicker");
-
 let ESPList = new Map();
 
 function connectToESP(url) {
   const socket = new WebSocket("ws://" + url + ":80");
+  let containerDiv;
 
   socket.addEventListener("open", (event) => {
     console.log("WebSocket connection opened");
-    socket.send("Client connected with url " + url);
+    socket.send("Client connected to ESP8266 !");
+    createModule(url);
+    containerDiv = document.getElementById(url);
+    containerDiv.querySelector("#state").innerHTML = "Connected";
   });
 
   socket.addEventListener("message", (event) => {
     var obj = JSON.parse(event.data);
-    document.getElementById("humidity").innerHTML = obj.humidity + "%";
-    document.getElementById("temperature").innerHTML = obj.temperature + "°C";
-    console.log(event.data);
+    if (obj.humidity) {
+      containerDiv.querySelector("#hum").innerHTML = obj.humidity + "%";
+    }
+    if(obj.temperature){     
+      containerDiv.querySelector("#tmp").innerHTML = obj.temperature + "°C";
+    }
+    if (obj.rgb) {
+      containerDiv.querySelector("#color").value = "#" + obj.rgb;
+    }
   });
 
   socket.addEventListener("close", (event) => {
     console.log("WebSocket connection closed");
+    containerDiv.querySelector("#state").innerHTML = "Disconnected";
   });
 
   socket.addEventListener("error", (event) => {
@@ -28,47 +37,61 @@ function connectToESP(url) {
   ESPList.set(url,socket);
 }
 
-// Ajouter un écouteur d'événements pour détecter les changements de couleur
-colorPicker.addEventListener("input", function () {
-  console.log("HANDLER");
-  // Récupérer la valeur de la couleur sélectionnée
-  var selectedColor = colorPicker.value;
-
-  // Mettre à jour l'affichage des informations RGB
-  updateRGBInfo(selectedColor);
-});
-
-function updateRGBInfo(color) {
-  // Convertir la couleur hexadécimale en RGB
+function updateRGBInfo(color, socket) {
   var rgb = hexToRgb(color);
-
-  // Afficher les informations RGB
-  var rgbInfo = document.getElementById("rgbValue");
-  rgbInfo.textContent = rgb
-    ? `(${rgb.r}, ${rgb.g}, ${rgb.b})`
-    : "Invalid Color";
 
   console.log("rouge : " + rgb.r);
   console.log("vert : " + rgb.g);
   console.log("bleu : " + rgb.b);
+
+  const rdgMessage = `RGB:${rgb.r}, ${rgb.g}, ${rgb.b}`;
+  socket.send(rdgMessage);
 }
 
-function hexToRgb(hex) {
-  // Supprimer le caractère # du début, si présent
+function hexToRgb(hex) {  
   hex = hex.replace(/^#/, "");
 
-  // Vérifier la longueur de la chaîne hexadécimale
   if (hex.length === 3) {
-    // Étendre la couleur courte à une couleur longue (ex: #abc -> #aabbcc)
     hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
   }
 
-  // Convertir la chaîne hexadécimale en valeurs RGB
   var bigint = parseInt(hex, 16);
   var r = (bigint >> 16) & 255;
   var g = (bigint >> 8) & 255;
   var b = bigint & 255;
 
-  // Retourner un objet avec les composants RGB
   return { r, g, b };
+}
+
+function createModule(url){
+  let elements = [];
+  var containerDiv = document.getElementById(url);
+  var state = document.createElement("p");
+  state.id = "state";
+  state.innerHTML = "Disconnected";
+  
+  var hum = document.createElement("p");
+  hum.id = "hum";
+  hum.innerHTML = "Awaiting for data"
+
+  var tmp = document.createElement("p");
+  tmp.id = "tmp";
+  tmp.innerHTML = "Awaiting for data";
+
+  var color = document.createElement("input");
+  color.id = "color";
+  color.setAttribute("type","color");
+
+  color.addEventListener("input", function () {
+    var selectedColor = color.value;
+    updateRGBInfo(selectedColor, ESPList.get(url));
+  });
+
+  elements.push(state);
+  elements.push(hum);
+  elements.push(tmp);
+  elements.push(color);
+  elements.forEach((element) => {
+    containerDiv.append(element);
+  });
 }
