@@ -1,49 +1,45 @@
-#include <ArduinoWebsockets.h>
 #include <ESP8266WiFi.h>
+#include <WebSocketsServer.h>
+#include <DHT.h>
 
-const char* ssid = "not_eduroam"; //Enter SSID
-const char* password = "12345678"; //Enter Password
+const char *ssid = "ESP-8266-GA";    // Set the SSID (name) of the access point
+const char *password = "12345678";  // Set the password of the access point
 
-using namespace websockets;
+const int DHTPin = 0;  // Pin connected to the DHT11 sensor
+DHT dht(DHTPin, DHT11);
 
-WebsocketsServer server;
+WebSocketsServer webSocket = WebSocketsServer(80);
+
+void handleWebSocketMessage(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
+  switch (type) {
+    case WStype_TEXT: {
+      Serial.println("Received text message: " + String((char *)payload));
+    } break;
+  }
+}
 
 void setup() {
   Serial.begin(115200);
-  // Connect to wifi
-  WiFi.begin(ssid, password);
 
-  // Wait some time to connect to wifi
-  for(int i = 0; i < 15 && WiFi.status() != WL_CONNECTED; i++) {
-      Serial.print(".");
-      delay(1000);
-  }
-  
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address:");
-  Serial.println(WiFi.localIP());   //You can get IP address assigned to ESP
+  dht.begin();
+  WiFi.softAP(ssid, password);
 
-  server.listen(80);
-  Serial.print("Is server live?");
-  Serial.println(server.available());
+  Serial.println("Access Point IP address: " + WiFi.softAPIP().toString());
+
+  webSocket.begin();
+  webSocket.onEvent(handleWebSocketMessage);
 }
 
 void loop() {
-  auto client = server.accept();
-  if(client.available()) {
-    auto msg = client.readBlocking();
+  webSocket.loop();
 
-    // log
-    Serial.print("Got Message:");
-    Serial.println(msg.data());
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
 
-    // return echo
-    client.send("Echo: " + msg.data());
+  String jsonData = "{\"temperature\":" + String(temperature) + ",\"humidity\":" + String(humidity) + "}";
+  Serial.println(humidity);
+  Serial.println(temperature);
 
-    // close the connection
-    client.close();
-  }
-  
+  webSocket.broadcastTXT(jsonData);
   delay(1000);
 }
