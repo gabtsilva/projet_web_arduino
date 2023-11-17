@@ -1,24 +1,40 @@
-var colorPicker = document.getElementById("colorPicker");
-
 let ESPList = new Map();
+
+var colorPicker = document.getElementById("colorPicker");
+let divInfoConnexion = document.querySelector(".connexion");
+let FLAG_COLOR = true;
 
 function connectToESP(url) {
   const socket = new WebSocket("ws://" + url + ":80");
 
   socket.addEventListener("open", (event) => {
     console.log("WebSocket connection opened");
-    socket.send("Client connected with url " + url);
+    divInfoConnexion.innerHTML = "connecté à ESP8266";
+    socket.send("Client connected to ESP8266 !");
+    createModule(url);
+    var obj = JSON.parse(event.data);
+    document.getElementById("humidity").innerHTML = obj.humidity + "%";
+    document.getElementById("temperature").innerHTML = obj.temperature + "°C";
+    colorPicker.value = "#" + obj.rgb;
   });
 
   socket.addEventListener("message", (event) => {
     var obj = JSON.parse(event.data);
-    document.getElementById("humidity").innerHTML = obj.humidity + "%";
-    document.getElementById("temperature").innerHTML = obj.temperature + "°C";
+    if (obj.humidity) {
+      document.getElementById("humidity").innerHTML = obj.humidity + "%";
+      document.getElementById("temperature").innerHTML = obj.temperature + "°C";
+    }
     console.log(event.data);
+    if (obj.rgb) {
+      // FLAG_COLOR = false;
+      colorPicker.value = "#" + obj.rgb;
+      // FLAG_COLOR = true;
+    }
   });
 
   socket.addEventListener("close", (event) => {
     console.log("WebSocket connection closed");
+    divInfoConnexion.innerHTML = "Déconnecté";
   });
 
   socket.addEventListener("error", (event) => {
@@ -27,7 +43,6 @@ function connectToESP(url) {
 
   ESPList.set(url,socket);
 }
-
 // Ajouter un écouteur d'événements pour détecter les changements de couleur
 colorPicker.addEventListener("input", function () {
   console.log("HANDLER");
@@ -35,22 +50,21 @@ colorPicker.addEventListener("input", function () {
   var selectedColor = colorPicker.value;
 
   // Mettre à jour l'affichage des informations RGB
+  //if (FLAG_COLOR) {
   updateRGBInfo(selectedColor);
+  //}
 });
 
 function updateRGBInfo(color) {
   // Convertir la couleur hexadécimale en RGB
   var rgb = hexToRgb(color);
 
-  // Afficher les informations RGB
-  var rgbInfo = document.getElementById("rgbValue");
-  rgbInfo.textContent = rgb
-    ? `(${rgb.r}, ${rgb.g}, ${rgb.b})`
-    : "Invalid Color";
-
   console.log("rouge : " + rgb.r);
   console.log("vert : " + rgb.g);
   console.log("bleu : " + rgb.b);
+
+  const rdgMessage = `RGB:${rgb.r}, ${rgb.g}, ${rgb.b}`;
+  socket.send(rdgMessage);
 }
 
 function hexToRgb(hex) {
@@ -71,4 +85,13 @@ function hexToRgb(hex) {
 
   // Retourner un objet avec les composants RGB
   return { r, g, b };
+}
+
+function createModule(url){
+  const p_state = document.createElement("p").setAttribute("id","state." + url);
+  const p_hum = document.createElement("p").setAttribute("id","hum-" + url);
+  const p_tmp = document.createElement("p").setAttribute("id","tmp-" + url);
+  const input = document.createElement("input").setAttribute("id","color-" + url);
+  document.body.appendChild(p_state);
+
 }

@@ -4,20 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EPS8266 - Control panel</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <button onClick="connectToESP('192.168.23.100')">Connect to ESP-1</button>
+    <button onClick="connectToESP('192.168.23.217')">Connect to ESP-1</button>
     <button onClick="connectToESP('192.168...')">Connect to ESP-2</button>
-    <!-- <p id="humidity">Waiting for data</p>
+    <p class="connexion"></p>
+    <p id="humidity">Waiting for data</p>
     <p id="temperature">Waiting for data</p>
 
     <label for="colorPicker">Choisissez une couleur :</label>
     <input type="color" id="colorPicker" name="colorPicker" value="#ff0000" />
-    -->
-
-    <div id="colorInfo">
-      <p>RGB: <span id="rgbValue"></span></p>
-    </div>
 
     <script src="script.js"></script>
   </body>
