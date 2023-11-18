@@ -1,18 +1,10 @@
 #include <ESP8266WiFi.h>
 #include <WebSocketsServer.h>
 #include <DHT.h>
+#include "config.h"
 
-const char *ssid = "not_eduroam";    // Nom du point d'accès (SSID)
-const char *password = "12345678";  // Mot de passe du point d'accès
-
-const int DHTPin = 0;  // Broche connectée au capteur DHT11
-DHT dht(DHTPin, DHT11);
-
+DHT dht(DHT_PIN, DHT11);
 WebSocketsServer webSocket = WebSocketsServer(80);
-
-const int redPin = 4;    // Broche pour la LED rouge
-const int greenPin = 12;  // Broche pour la LED verte
-const int bluePin = 14;   // Broche pour la LED bleue
 
 int lastRed = 255;
 int lastGreen = 0;
@@ -72,22 +64,33 @@ void handleWebSocketMessage(uint8_t num, WStype_t type, uint8_t *payload, size_t
         lastBlue = blueValue;
         
         // Appliquer les valeurs RGB aux broches correspondantes
-        analogWrite(redPin, redValue);
-        analogWrite(greenPin, greenValue);
-        analogWrite(bluePin, blueValue);
+        analogWrite(RED_LED_PIN, redValue);
+        analogWrite(GREEN_LED_PIN, greenValue);
+        analogWrite(BLUE_LED_PIN, blueValue);
       }
 
     } break;
   }
 }
 
+void dghtloop(){
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
+
+  if (temperature != lastTemperature || humidity != lastHumidity) { // Vérifier si la température a changé
+    String jsonData = "{\"temperature\":" + String(temperature) + ",\"humidity\":" + String(humidity) + "}";
+    webSocket.broadcastTXT(jsonData);
+    lastTemperature = temperature;
+    lastHumidity = humidity;
+  }
+}
+
 void setup() {
   Serial.begin(115200);
-
   dht.begin();
 
   // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
+  WiFi.begin(SSID, SSID_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.print(".");
@@ -97,27 +100,13 @@ void setup() {
   webSocket.begin();
   webSocket.onEvent(handleWebSocketMessage);
 
-  pinMode(redPin, OUTPUT);    // Configurer la broche de la LED rouge en sortie
-  pinMode(greenPin, OUTPUT);  // Configurer la broche de la LED verte en sortie
-  pinMode(bluePin, OUTPUT);   // Configurer la broche de la LED bleue en sortie
+  pinMode(RED_LED_PIN, OUTPUT);    // Configurer la broche de la LED rouge en sortie
+  pinMode(GREEN_LED_PIN, OUTPUT);  // Configurer la broche de la LED verte en sortie
+  pinMode(BLUE_LED_PIN, OUTPUT);   // Configurer la broche de la LED bleue en sortie
 
-  analogWrite(redPin, lastRed);
-  analogWrite(greenPin, lastGreen);
-  analogWrite(bluePin, lastBlue);
-}
-
-void dghtloop(){
-      float temperature = dht.readTemperature();
-      float humidity = dht.readHumidity();
-
-      if (temperature != lastTemperature || humidity != lastHumidity) { // Vérifier si la température a changé
-        String jsonData = "{\"temperature\":" + String(temperature) + ",\"humidity\":" + String(humidity) + "}";
-        webSocket.broadcastTXT(jsonData);
-        lastTemperature = temperature;
-        lastHumidity = humidity;
- // Mettre à jour la dernière valeur de température
-      }
-
+  analogWrite(RED_LED_PIN, lastRed);
+  analogWrite(GREEN_LED_PIN, lastGreen);
+  analogWrite(BLUE_LED_PIN, lastBlue);
 }
 
 void loop() {
