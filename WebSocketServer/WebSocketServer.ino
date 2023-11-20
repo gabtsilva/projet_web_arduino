@@ -76,7 +76,6 @@ void handleWebSocketMessage(uint8_t num, WStype_t type, uint8_t *payload, size_t
 void dghtloop(){
   float temperature = dht.readTemperature();
   float humidity = dht.readHumidity();
-
   if (temperature != lastTemperature || humidity != lastHumidity) { // Vérifier si la température a changé
     String jsonData = "{\"temperature\":" + String(temperature) + ",\"humidity\":" + String(humidity) + "}";
     webSocket.broadcastTXT(jsonData);
