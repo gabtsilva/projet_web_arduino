@@ -11,3 +11,10 @@ body{
     border-radius: 50%;
     background-color:red;
 }
+
+#esp-close-button{
+    background-color: transparent;
+    position:absolute;
+    top:0;
+    right:0;
+}

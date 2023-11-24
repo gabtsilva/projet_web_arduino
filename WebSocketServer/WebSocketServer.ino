@@ -12,7 +12,7 @@ int lastBlue = 0;
 float lastTemperature = 0; // Stocker la dernière valeur de température
 float lastHumidity = 0;
 
-void handleWebSocketMessage(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
+void handleWebSocketEvents(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
   switch (type) {
     case WStype_CONNECTED: {
     // Convertir les valeurs RGB en une seule valeur hexadécimale
@@ -97,7 +97,7 @@ void setup() {
   Serial.println("Connected to WiFi with IP address: " + WiFi.localIP().toString());
 
   webSocket.begin();
-  webSocket.onEvent(handleWebSocketMessage);
+  webSocket.onEvent(handleWebSocketEvents);
 
   pinMode(RED_LED_PIN, OUTPUT);    // Configurer la broche de la LED rouge en sortie
   pinMode(GREEN_LED_PIN, OUTPUT);  // Configurer la broche de la LED verte en sortie
